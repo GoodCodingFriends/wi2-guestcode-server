@@ -1,0 +1,13 @@
+runtime: go
+api_version: go1.9
+
+includes:
+- secret.yaml
+
+handlers:
+- url: /.*
+  secure: always
+  script: _go_app
+
+inbound_services:
+  - mail

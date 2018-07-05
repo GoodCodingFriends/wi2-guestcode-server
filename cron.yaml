@@ -1,0 +1,4 @@
+cron:
+  - description: "periodically check"
+    url: /check
+    schedule: every 10 minutes
