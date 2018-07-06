@@ -58,7 +58,12 @@ Wi2　300　ゲストサービスのお申し込みありがとうございま�
 
 func TestCode(t *testing.T) {
 	mux := http.NewServeMux()
-	handle(mux)
+
+	a := &app{
+		sender: "agent@hoge.appspotmail.com",
+		to:     "to@example.com",
+	}
+	a.handle(mux)
 
 	w := httptest.NewRecorder()
 
@@ -122,7 +127,12 @@ func TestCode(t *testing.T) {
 
 func TestReceivingMail(t *testing.T) {
 	mux := http.NewServeMux()
-	handle(mux)
+
+	a := &app{
+		sender: "agent@hoge.appspotmail.com",
+		to:     "to@example.com",
+	}
+	a.handle(mux)
 
 	w := httptest.NewRecorder()
 

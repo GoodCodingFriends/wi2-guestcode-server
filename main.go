@@ -17,31 +17,24 @@ import (
 	gaemail "google.golang.org/appengine/mail"
 )
 
-var sender = os.Getenv("WI2_GUESTCODE_SERVER_SENDER")
-var to = os.Getenv("WI2_GUESTCODE_SERVER_TO")
-
-func init() {
+func main() {
+	sender := os.Getenv("WI2_GUESTCODE_SERVER_SENDER")
 	if sender == "" {
 		panic("WI2_GUESTCODE_SERVER_SENDER is not set")
 	}
+
+	to := os.Getenv("WI2_GUESTCODE_SERVER_TO")
 	if to == "" {
 		panic("WI2_GUESTCODE_SERVER_TO is not set")
 	}
-}
 
-func sendMail(ctx context.Context) error {
-	msg := &gaemail.Message{
-		Sender:  fmt.Sprintf("<%s>", sender),
-		To:      []string{to},
-		Subject: "",
-		Body:    "",
+	a := &app{
+		sender: sender,
+		to:     to,
 	}
 
-	if err := gaemail.Send(ctx, msg); err != nil {
-		return err
-	}
-
-	return nil
+	a.handle(http.DefaultServeMux)
+	appengine.Main()
 }
 
 type codeEntity struct {
@@ -50,16 +43,12 @@ type codeEntity struct {
 	Created time.Time `datastore:"created"`
 }
 
-func dcsKey(client datastore.Client) datastore.Key {
-	return client.NameKey("code", "dcs", nil)
+type app struct {
+	sender string
+	to     string
 }
 
-func main() {
-	handle(http.DefaultServeMux)
-	appengine.Main()
-}
-
-func handle(mux *http.ServeMux) {
+func (a *app) handle(mux *http.ServeMux) {
 	// Request code
 	mux.HandleFunc("/code", func(w http.ResponseWriter, r *http.Request) {
 		ctx := appengine.NewContext(r)
@@ -130,7 +119,7 @@ func handle(mux *http.ServeMux) {
 			return
 		}
 
-		if err := sendMail(ctx); err != nil {
+		if err := a.sendMail(ctx); err != nil {
 			log.Errorf(ctx, "%v", err)
 			return
 		}
@@ -165,7 +154,7 @@ func handle(mux *http.ServeMux) {
 		code := regexp.MustCompile(`DCS[\w\d]+`).FindString(string(content))
 		if code == "" {
 			log.Infof(ctx, "No code in the reply. Retring to send mail.")
-			if err := sendMail(ctx); err != nil {
+			if err := a.sendMail(ctx); err != nil {
 				log.Errorf(ctx, "%v", err)
 				return
 			}
@@ -182,4 +171,23 @@ func handle(mux *http.ServeMux) {
 			log.Infof(ctx, "put new record")
 		}
 	})
+}
+
+func (a *app) sendMail(ctx context.Context) error {
+	msg := &gaemail.Message{
+		Sender:  fmt.Sprintf("<%s>", a.sender),
+		To:      []string{a.to},
+		Subject: "",
+		Body:    "",
+	}
+
+	if err := gaemail.Send(ctx, msg); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func dcsKey(client datastore.Client) datastore.Key {
+	return client.NameKey("code", "dcs", nil)
 }
