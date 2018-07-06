@@ -6,6 +6,8 @@ RUN apt-get update && \
   curl http://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
   apt-get update && \
   apt-get install -y --no-install-recommends \
-    golang-1.9 \
+    python \
+    golang-1.9-go \
     google-cloud-sdk \
     google-cloud-sdk-app-engine-go
+ENV PATH $PATH:/usr/lib/go-1.9/bin
