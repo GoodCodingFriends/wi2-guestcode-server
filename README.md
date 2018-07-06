@@ -1,5 +1,7 @@
 # wi2-guestcode-server
 
+[![CircleCI](https://img.shields.io/circleci/project/github/GoodCodingFriends/wi2-guestcode-server.svg?style=for-the-badge)](https://circleci.com/gh/GoodCodingFriends/wi2-guestcode-server)
+
 Getting the Guest Code for public Wi-Fi is messy and stressfull? Ok, the agent will do instead of you!
 
 ## Environment
