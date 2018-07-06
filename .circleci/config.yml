@@ -6,7 +6,7 @@ jobs:
   build:
     docker:
       - image: goodcodingfriends/wi2-guestcode-server-circleci
-    working_directory: /go/src/github.com/GoodCodingFriends/wi2-guestcode-server
+    working_directory: ~/go/src/github.com/GoodCodingFriends/wi2-guestcode-server
     steps:
       - checkout
       - run: go get -v -t -d ./...
