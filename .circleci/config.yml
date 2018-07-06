@@ -5,7 +5,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.9
+      - image: goodcodingfriends/wi2-guestcode-server-circleci
     working_directory: /go/src/github.com/GoodCodingFriends/wi2-guestcode-server
     steps:
       - checkout
