@@ -153,7 +153,7 @@ func (a *app) handle(mux *http.ServeMux) {
 
 		code := regexp.MustCompile(`DCS[\w\d]+`).FindString(string(content))
 		if code == "" {
-			log.Infof(ctx, "No code in the reply. Retring to send mail.")
+			log.Infof(ctx, "No code in the reply. Retrying to send mail.")
 			if err := a.sendMail(ctx); err != nil {
 				log.Errorf(ctx, "%v", err)
 				return
