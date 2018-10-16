@@ -159,6 +159,19 @@ func (a *app) handle(mux *http.ServeMux) {
 				return
 			}
 		} else {
+			count, err := client.Count(ctx, client.NewQuery("code").Filter("code =", code).Ancestor(dcsKey(client)).Limit(1))
+			if err != nil {
+				log.Errorf(ctx, "error on counting the code: %v", err)
+				return
+			}
+			if count == 1 {
+				log.Errorf(ctx, "Received old code. Retrying to send mail.")
+				if err := a.sendMail(ctx); err != nil {
+					log.Errorf(ctx, "%v", err)
+				}
+				return
+			}
+
 			k := client.IncompleteKey("code", dcsKey(client))
 			if _, err := client.Put(ctx, k, &codeEntity{
 				Code:    code,

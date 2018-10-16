@@ -190,3 +190,59 @@ func TestReceivingMail(t *testing.T) {
 		t.Errorf("the Used of got entity is expected false, but %v", code.Used)
 	}
 }
+
+func TestReceivingMailWithExistingCode(t *testing.T) {
+	mux := http.NewServeMux()
+
+	a := &app{
+		sender: "agent@hoge.appspotmail.com",
+		to:     "to@example.com",
+	}
+	a.handle(mux)
+
+	w := httptest.NewRecorder()
+
+	inst, err := aetest.NewInstance(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer inst.Close()
+
+	req, err := inst.NewRequest("POST", "/_ah/mail/agent@hoge.appspotmail.com", strings.NewReader(mailMsgStub))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ctx := appengine.NewContext(req)
+
+	// Setup datastore
+	client, err := aedatastore.FromContext(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	parentKey, err := client.Put(ctx, client.NameKey("code", "dcs", nil), &struct{}{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := client.Put(ctx, client.IncompleteKey("code", parentKey), &codeEntity{
+		Code:    "DCS7270BRQ",
+		Used:    true,
+		Created: time.Date(1996, 7, 30, 0, 0, 0, 0, time.UTC),
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	mux.ServeHTTP(w, req)
+	t.Log(w.Body)
+
+	var codes []*codeEntity
+	if _, err := client.GetAll(ctx, client.NewQuery("code").Ancestor(dcsKey(client)).Filter("used =", false).Order("-created").Limit(1), &codes); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(codes) != 0 {
+		t.Fatalf("the len of codes got by the query is expected 0, but %v(the value is %v)", len(codes), codes)
+	}
+}
