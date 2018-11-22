@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -60,8 +61,7 @@ func TestCode(t *testing.T) {
 	mux := http.NewServeMux()
 
 	a := &app{
-		sender: "agent@hoge.appspotmail.com",
-		to:     "to@example.com",
+		to: "to@example.com",
 	}
 	a.handle(mux)
 
@@ -125,12 +125,42 @@ func TestCode(t *testing.T) {
 	}
 }
 
+func TestComposeMessage(t *testing.T) {
+	a := &app{
+		to: "to@example.com",
+	}
+
+	inst, err := aetest.NewInstance(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer inst.Close()
+
+	req, err := inst.NewRequest("GET", "/code", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ctx := appengine.NewContext(req)
+
+	msg := a.composeMessage(ctx)
+
+	appID := appengine.AppID(ctx)
+	t.Logf("AppID: %s", appID)
+	if substr := fmt.Sprintf("@%s.appspotmail.com", appID); !strings.Contains(msg.Sender, substr) {
+		t.Errorf("the Sender is expected contains `%s` but does not: %s", substr, msg.Sender)
+	}
+
+	if len(msg.To) != 1 || msg.To[0] != a.to {
+		t.Errorf("the To is expected %s but %#+v", a.to, msg.To)
+	}
+}
+
 func TestReceivingMail(t *testing.T) {
 	mux := http.NewServeMux()
 
 	a := &app{
-		sender: "agent@hoge.appspotmail.com",
-		to:     "to@example.com",
+		to: "to@example.com",
 	}
 	a.handle(mux)
 
@@ -195,8 +225,7 @@ func TestReceivingMailWithExistingCode(t *testing.T) {
 	mux := http.NewServeMux()
 
 	a := &app{
-		sender: "agent@hoge.appspotmail.com",
-		to:     "to@example.com",
+		to: "to@example.com",
 	}
 	a.handle(mux)
 
