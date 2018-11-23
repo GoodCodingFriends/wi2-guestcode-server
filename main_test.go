@@ -17,6 +17,7 @@ var mailMsgStub = `Date: Mon, 23 Jun 2019 11:40:36 -0400
 From: 株式会社ワイヤ・アンド・ワイヤレス <cs-info@wi2.co.jp>
 To: Agent <agent@hoge.appspotmail.com>
 Subject: Wi2 300 ゲストコードのお知らせ
+Content-Type: text/html; charset="UTF-8"
 
 Wi2　300　ゲストサービスのお申し込みありがとうございます。
 

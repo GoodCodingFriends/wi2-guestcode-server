@@ -3,14 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"net/http"
-	"net/mail"
 	"os"
 	"regexp"
 	"time"
 
+	"github.com/jhillyerd/enmime"
 	"go.mercari.io/datastore"
 	"go.mercari.io/datastore/aedatastore"
 	"google.golang.org/appengine"
@@ -131,21 +130,15 @@ func (a *app) handle(mux *http.ServeMux) {
 		}
 		defer client.Close()
 
-		msg, err := mail.ReadMessage(r.Body)
+		env, err := enmime.ReadEnvelope(r.Body)
 		if err != nil {
 			log.Errorf(ctx, "%v", err)
 			return
 		}
 
-		content, err := ioutil.ReadAll(msg.Body)
-		if err != nil {
-			log.Errorf(ctx, "%v", err)
-			return
-		}
+		log.Infof(ctx, "Received mail: %v", env.Text)
 
-		log.Infof(ctx, "Received mail: %v", string(content))
-
-		code := regexp.MustCompile(`DCS[\w\d]+`).FindString(string(content))
+		code := regexp.MustCompile(`DCS[\w\d]+`).FindString(env.Text)
 		if code == "" {
 			log.Infof(ctx, "No code in the reply. Retrying to send mail.")
 			if err := a.sendMail(ctx); err != nil {
