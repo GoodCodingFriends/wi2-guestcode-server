@@ -6,7 +6,7 @@ Getting the Guest Code for public Wi-Fi is messy and stressfull? Ok, the agent w
 
 ## Environment
 
-- Go 1.9
+- Go 1.11
 - Google App Engine(Standard Environment)
 
 ## Setup
@@ -18,7 +18,6 @@ Getting the Guest Code for public Wi-Fi is messy and stressfull? Ok, the agent w
 2. Create `secret.yaml` including some environment variable specifications:
    ```
    env_variables:
-     WI2_GUESTCODE_SERVER_SENDER: "hoge@projectname.appspotmail.com"
      WI2_GUESTCODE_SERVER_TO: "dcs@forguest.wi2.ne.jp"
    ```
 3. Deploy it.
