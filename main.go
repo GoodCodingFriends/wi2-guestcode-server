@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"net/mail"
 	"os"
@@ -18,19 +19,13 @@ import (
 )
 
 func main() {
-	sender := os.Getenv("WI2_GUESTCODE_SERVER_SENDER")
-	if sender == "" {
-		panic("WI2_GUESTCODE_SERVER_SENDER is not set")
-	}
-
 	to := os.Getenv("WI2_GUESTCODE_SERVER_TO")
 	if to == "" {
 		panic("WI2_GUESTCODE_SERVER_TO is not set")
 	}
 
 	a := &app{
-		sender: sender,
-		to:     to,
+		to: to,
 	}
 
 	a.handle(http.DefaultServeMux)
@@ -44,8 +39,7 @@ type codeEntity struct {
 }
 
 type app struct {
-	sender string
-	to     string
+	to string
 }
 
 func (a *app) handle(mux *http.ServeMux) {
@@ -187,18 +181,33 @@ func (a *app) handle(mux *http.ServeMux) {
 }
 
 func (a *app) sendMail(ctx context.Context) error {
-	msg := &gaemail.Message{
-		Sender:  fmt.Sprintf("<%s>", a.sender),
-		To:      []string{a.to},
-		Subject: "",
-		Body:    "",
-	}
-
-	if err := gaemail.Send(ctx, msg); err != nil {
+	if err := gaemail.Send(ctx, a.composeMessage(ctx)); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (a *app) composeMessage(ctx context.Context) *gaemail.Message {
+	return &gaemail.Message{
+		Sender:  fmt.Sprintf("<%s@%s.appspotmail.com>", randstr(), appengine.AppID(ctx)),
+		To:      []string{a.to},
+		Subject: "",
+		Body:    "",
+	}
+}
+
+func randstr() string {
+	letters := []byte("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+	str := make([]byte, 0, 8)
+	rand.Seed(time.Now().Unix())
+	for i := 0; i < 8; i++ {
+		li := rand.Intn(len(letters))
+		str = append(str, letters[li])
+	}
+
+	return string(str)
 }
 
 func dcsKey(client datastore.Client) datastore.Key {
